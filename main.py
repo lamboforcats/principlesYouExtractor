@@ -1,5 +1,6 @@
 # main.py
 
+import gc
 import pdf2image
 from PIL import Image
 import pytesseract
@@ -10,7 +11,7 @@ from openpyxl.styles import numbers
 
 def process_pdf(file_path):
     # DPI for the conversion, lower this to decrease memory usage but keep in mind that it could affect OCR accuracy
-    dpi = 300
+    dpi = 200
 
     # Set of valid attributes
     valid_attributes = set([
@@ -75,8 +76,11 @@ def process_pdf(file_path):
     # Variable to hold all text
     all_text = ""
 
+    # Get a list of pages
+    pages = pdf2image.convert_from_path(file_path, dpi)
+
     # Iterate over all the pages in the PDF and convert each to image
-    for i, image in enumerate(pdf2image.convert_from_path(file_path, dpi)):
+    for i, image in enumerate(pages):
         text = pytesseract.image_to_string(image)
         all_text += text + "\n"
         matches = re.findall(r"(.+)\s+(\d+)%|(\d+)%\s+(.+)", text)
@@ -92,6 +96,13 @@ def process_pdf(file_path):
                 percentage = int(percentage / 10) 
             if attribute in valid_attributes and attribute not in attributes:   
                 attributes[attribute] = str(percentage) + "%"
+
+        # Delete the image and text variable to free up memory
+        del image
+        del text
+
+        # Run garbage collector
+        gc.collect()
 
     # Write OCR results to a text file
     with open("ocrResult.txt", "w") as text_file:
