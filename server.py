@@ -1,6 +1,6 @@
 # server.py
 from flask import Flask, request, send_file, render_template
-import main
+import main.py
 
 app = Flask(__name__)
 
@@ -12,7 +12,7 @@ def home():
 def process_pdf():
     if request.method == 'POST':
         file = request.files['file']
-        main(file)  # run your script
+        main.py(file)  # run your script
         return send_file('attributes.xlsx', as_attachment=True)
     return render_template('index.html')
 
