@@ -6,9 +6,6 @@ import main
 
 app = Flask(__name__)
 
-# Make sure to create 'uploads' directory in the same path where your server.py file is
-UPLOAD_FOLDER = 'uploads/'
-
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
@@ -17,8 +14,10 @@ def home():
 def process_pdf():
     if request.method == 'POST':
         file = request.files['file']
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        upload_directory = 'uploads/'
+        if not os.path.exists(upload_directory):
+            os.makedirs(upload_directory)
+        file_path = os.path.join(upload_directory, secure_filename(file.filename))
         file.save(file_path)
         main.process_pdf(file_path)  # run your script
         return send_file('attributes.xlsx', as_attachment=True)
